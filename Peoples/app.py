@@ -1,0 +1,84 @@
+# С помощью библиотеки faker создать 3 файла:
+# 1. humans.txt - ФИО(hint -> .name()), разделитель - запятая
+# 2. names.txt - Имена(hint -> .first_name())
+# 3. users.txt - Профиль(hint -> .simple_profile()), разделитель - запятая
+
+# Создать по 10 строк в каждом файле
+from flask import Flask, render_template, abort
+from faker import Faker
+
+
+app = Flask(__name__)
+fake = Faker("ru_RU")
+
+
+def create_files() -> None:
+    """ Function to create txt files."""
+    with open("./files/humans.txt", 'w', encoding="utf-8") as humans_f:
+        for _ in range(10):
+            print(*fake.name().split(), sep=',', file=humans_f)
+
+    with open("./files/names.txt", 'w', encoding="utf-8") as humans_f:
+        for _ in range(10):
+            print(fake.first_name(), sep=',', file=humans_f)
+
+    with open("./files/users.txt", 'w', encoding="utf8") as humans_f:
+        for _ in range(10):
+            print(*fake.simple_profile().values(), sep=';', file=humans_f)
+
+
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+
+@app.route("/names")
+def get_names():
+    names = list()
+    with open("files/names.txt", encoding="utf-8") as f:
+        for raw_line in f:
+            names.append(raw_line.strip())
+    return render_template("names.html", people_names=names)
+
+
+@app.route("/table")
+def table():
+    peoples = list()
+    with open("files/humans.txt", encoding="utf-8") as f:
+        for raw_line in f:
+            data = raw_line.strip().split(',')
+            peoples.append({
+                'last_name': data[0],
+                'middle_name': data[1], 
+                'first_name': data[2]})
+    return render_template('table.html', peoples=peoples)
+
+@app.route("/users")
+def users_list():
+    entities = list()
+    with open('files/users.txt', encoding="utf-8") as f:
+        for raw_line in f:
+            data = raw_line.strip().split(';')
+            entities.append({'login': data[0], 'last_name': data[1],
+                            'name': data[2], 'surname': data[3],
+                            'birth_date' : data[4], 'phone': data[5]})
+    return render_template('users_list.html', entities=entities)
+
+
+@app.route("/users/<login>")
+def user_info(login):
+    item = None
+    with open('files/users.txt', encoding="utf-8") as f:
+        for raw_line in f:
+            data = raw_line.strip().split(';')
+            if data[0] == login:
+                item = {'login': data[0], 'last_name': data[1], 'name': data[2],
+                        'surname': data[3], 'birth_date' : data[4], 'phone': data[5]}
+                break
+    if item is None:
+        abort(404)
+    return render_template('user_info.html', item=item)
+
+if __name__ == "__main__":
+    # create_files()
+    app.run(debug=True)
