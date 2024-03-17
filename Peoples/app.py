@@ -4,7 +4,7 @@
 # 3. users.txt - Профиль(hint -> .simple_profile()), разделитель - запятая
 
 # Создать по 10 строк в каждом файле
-from flask import Flask, render_template, abort
+from flask import Flask, render_template
 from faker import Faker
 
 
@@ -35,7 +35,7 @@ def home():
 @app.route("/names")
 def get_names():
     names = list()
-    with open("files/names.txt", encoding="utf-8") as f:
+    with open("./files/names.txt", encoding="utf-8") as f:
         for raw_line in f:
             names.append(raw_line.strip())
     return render_template("names.html", people_names=names)
@@ -53,31 +53,6 @@ def table():
                 'first_name': data[2]})
     return render_template('table.html', peoples=peoples)
 
-@app.route("/users")
-def users_list():
-    entities = list()
-    with open('files/users.txt', encoding="utf-8") as f:
-        for raw_line in f:
-            data = raw_line.strip().split(';')
-            entities.append({'login': data[0], 'last_name': data[1],
-                            'name': data[2], 'surname': data[3],
-                            'birth_date' : data[4], 'phone': data[5]})
-    return render_template('users_list.html', entities=entities)
-
-
-@app.route("/users/<login>")
-def user_info(login):
-    item = None
-    with open('files/users.txt', encoding="utf-8") as f:
-        for raw_line in f:
-            data = raw_line.strip().split(';')
-            if data[0] == login:
-                item = {'login': data[0], 'last_name': data[1], 'name': data[2],
-                        'surname': data[3], 'birth_date' : data[4], 'phone': data[5]}
-                break
-    if item is None:
-        abort(404)
-    return render_template('user_info.html', item=item)
 
 if __name__ == "__main__":
     # create_files()
